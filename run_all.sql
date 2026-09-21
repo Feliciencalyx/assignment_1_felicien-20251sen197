@@ -1,8 +1,8 @@
 -- =============================================================================
 -- PL/SQL Assignment One - Sunrise Supermarket
 -- Master Execution Script: run_all.sql
--- Description: Sets display formats, runs DDL schema, inserts data,
---              and runs all 8 queries in sequence.
+-- Target Database: Oracle AI Database 26ai / 23ai Free (FREEPDB1)
+-- Schema / User: sunrise_user
 -- =============================================================================
 
 SET ECHO OFF
@@ -14,31 +14,28 @@ SET TAB OFF
 SET WRAP ON
 SET SQLBLANKLINES ON
 
--- Configure column widths for neat tabular display
+-- Format columns for neat terminal display
 COLUMN customer_id FORMAT 9999 HEADING 'Cust ID'
-COLUMN customer_name FORMAT A18 HEADING 'Customer Name'
-COLUMN email FORMAT A26 HEADING 'Email Address'
+COLUMN customer_name FORMAT A20 HEADING 'Customer Name'
+COLUMN email FORMAT A28 HEADING 'Email Address'
 COLUMN city FORMAT A14 HEADING 'City'
 COLUMN product_id FORMAT 9999 HEADING 'Prod ID'
-COLUMN product_name FORMAT A28 HEADING 'Product Name'
-COLUMN category FORMAT A12 HEADING 'Category'
-COLUMN price FORMAT $999.99 HEADING 'Price'
+COLUMN product_name FORMAT A24 HEADING 'Product Name'
+COLUMN category FORMAT A16 HEADING 'Category'
+COLUMN price FORMAT 999999 HEADING 'Price (RWF)'
 COLUMN quantity FORMAT 9999 HEADING 'Qty'
-COLUMN item_total FORMAT $999.99 HEADING 'Item Total'
+COLUMN item_total FORMAT 999999 HEADING 'Item Total (RWF)'
 COLUMN order_id FORMAT 9999 HEADING 'Order ID'
 COLUMN order_item_id FORMAT 9999 HEADING 'Item ID'
-COLUMN order_date FORMAT A12 HEADING 'Order Date'
-COLUMN prev_order_date FORMAT A12 HEADING 'Prev Date'
-COLUMN total_spend FORMAT $9999.99 HEADING 'Total Spend'
-COLUMN total_spent FORMAT $9999.99 HEADING 'Total Spent'
-COLUMN avg_customer_spend FORMAT $9999.99 HEADING 'Avg Spend'
-COLUMN benchmark_avg_spend FORMAT $9999.99 HEADING 'Benchmark Avg'
-COLUMN difference_above_avg FORMAT $9999.99 HEADING 'Diff Above Avg'
+COLUMN order_date FORMAT A14 HEADING 'Order Date'
+COLUMN prev_order_date FORMAT A14 HEADING 'Prev Date'
+COLUMN total_spent FORMAT 999999 HEADING 'Total Spent (RWF)'
+COLUMN average_spend FORMAT 999999.99 HEADING 'Avg Spend (RWF)'
 COLUMN spending_rank FORMAT 9999 HEADING 'Rank'
 COLUMN dense_spending_rank FORMAT 9999 HEADING 'Dense Rank'
 COLUMN customer_order_seq FORMAT 9999 HEADING 'Order #'
-COLUMN order_amount FORMAT $9999.99 HEADING 'Order Amt'
-COLUMN running_total_revenue FORMAT $99999.99 HEADING 'Running Revenue'
+COLUMN order_total FORMAT 999999 HEADING 'Order Total (RWF)'
+COLUMN running_total_revenue FORMAT 999999 HEADING 'Running Total (RWF)'
 COLUMN days_between_orders FORMAT 9999 HEADING 'Days Apart'
 
 PROMPT =========================================================================
@@ -60,5 +57,5 @@ PROMPT =========================================================================
 
 PROMPT
 PROMPT =========================================================================
-PROMPT EXECUTION COMPLETE! ALL TESTS PASSED.
+PROMPT EXECUTION COMPLETE! ALL TESTS PASSED SUCCESSFULLY.
 PROMPT =========================================================================
