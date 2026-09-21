@@ -37,15 +37,11 @@ COLUMN running_revenue FORMAT 999999 HEADING 'Running Total (RWF)'
 COLUMN days_between_orders FORMAT 9999 HEADING 'Days Apart'
 
 PROMPT
-PROMPT 1. Creating tables (01_schema.sql)...
-@@01_schema.sql
-
-PROMPT
-PROMPT 2. Inserting sample data (02_data.sql)...
+PROMPT 1. Inserting sample data (02_data.sql)...
 @@02_data.sql
 
 PROMPT
-PROMPT 3. Running analytical queries (03_queries.sql)...
+PROMPT 2. Running analytical queries (03_queries.sql)...
 @@03_queries.sql
 
 PROMPT

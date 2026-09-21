@@ -1,10 +1,10 @@
 # PL/SQL Assignment One — Sunrise Supermarket
 
-## Student Details
+## My Details
 * **Name:** Nshimyumukiza Felicien
 * **Student ID:** `20251SEN197`
 * **Course:** Advanced Database Systems / PL/SQL
-* **Group:** Group B / Group C / Group I / Group D
+* **Group:** Group B
 * **DBMS Used:** Oracle AI Database 26ai Free
 * **Client Tool:** SQL*Plus & Oracle SQL Developer
 * **Pluggable Database:** `FREEPDB1`
@@ -39,54 +39,11 @@ Store management needs clear reports from the database to answer these questions
 
 ---
 
-## 3. Database Schema Design
+## 3. Setup and Screenshots
 
-The database has four normalized tables:
+All steps were executed in Oracle AI Database 26ai using SQL*Plus connected to the `FREEPDB1` pluggable database.
 
-| Table Name | Description | Primary Key | Foreign Keys |
-|---|---|---|---|
-| **`customers`** | Stores customer name, email, and city | `customer_id` | None |
-| **`products`** | Stores product catalog, category, and price (RWF) | `product_id` | None |
-| **`orders`** | Stores orders placed by customers and order dates | `order_id` | `customer_id` → `customers` |
-| **`order_items`** | Stores products and quantities in each order | `order_item_id` | `order_id` → `orders`, `product_id` → `products` |
-
-```mermaid
-erDiagram
-    CUSTOMERS ||--o{ ORDERS : places
-    CUSTOMERS {
-        NUMBER customer_id PK
-        VARCHAR2 customer_name
-        VARCHAR2 email
-        VARCHAR2 city
-    }
-    ORDERS ||--|{ ORDER_ITEMS : contains
-    ORDERS {
-        NUMBER order_id PK
-        NUMBER customer_id FK
-        DATE order_date
-    }
-    PRODUCTS ||--o{ ORDER_ITEMS : contains
-    PRODUCTS {
-        NUMBER product_id PK
-        VARCHAR2 product_name
-        VARCHAR2 category
-        NUMBER price
-    }
-    ORDER_ITEMS {
-        NUMBER order_item_id PK
-        NUMBER order_id FK
-        NUMBER product_id FK
-        NUMBER quantity
-    }
-```
-
----
-
-## 4. Setup and Screenshots
-
-All steps were executed in Oracle Database using SQL*Plus connected to the `FREEPDB1` pluggable database.
-
-### 4.1 Connecting to `FREEPDB1`
+### 3.1 Connecting to `FREEPDB1`
 First, switch from the root container to the pluggable database `FREEPDB1`:
 ```sql
 SHOW PDBS;
@@ -104,7 +61,7 @@ FROM dual;
 
 ---
 
-### 4.2 Creating the User and Granting Permissions
+### 3.2 Creating the User and Granting Permissions
 Create `sunrise_user` with unlimited quota on `USERS`:
 ```sql
 CREATE USER sunrise_user
@@ -138,54 +95,7 @@ CONNECT sunrise_user/Sunrise123@localhost:1521/FREEPDB1
 ```
 ![Connect to Sunrise User](screenshots/connect%20to%20sunriser.png)
 
----
-
-### 4.3 Creating the Tables
-```sql
-CREATE TABLE customers (
-    customer_id   NUMBER PRIMARY KEY,
-    customer_name VARCHAR2(100) NOT NULL,
-    email         VARCHAR2(100) UNIQUE,
-    city          VARCHAR2(50)
-);
-
-CREATE TABLE products (
-    product_id   NUMBER PRIMARY KEY,
-    product_name VARCHAR2(100) NOT NULL,
-    category     VARCHAR2(50)  NOT NULL,
-    price        NUMBER(10,2)  NOT NULL,
-    CONSTRAINT chk_product_price CHECK (price >= 0)
-);
-
-CREATE TABLE orders (
-    order_id    NUMBER PRIMARY KEY,
-    customer_id NUMBER NOT NULL,
-    order_date  DATE   NOT NULL,
-    CONSTRAINT fk_orders_customer
-        FOREIGN KEY (customer_id)
-        REFERENCES customers(customer_id)
-);
-
-CREATE TABLE order_items (
-    order_item_id NUMBER PRIMARY KEY,
-    order_id      NUMBER NOT NULL,
-    product_id    NUMBER NOT NULL,
-    quantity      NUMBER NOT NULL,
-    CONSTRAINT fk_items_order
-        FOREIGN KEY (order_id)
-        REFERENCES orders(order_id),
-    CONSTRAINT fk_items_product
-        FOREIGN KEY (product_id)
-        REFERENCES products(product_id),
-    CONSTRAINT chk_item_quantity
-        CHECK (quantity > 0)
-);
-```
-![Table Creation](screenshots/table%20created.png)
-
----
-
-## 5. Data Population Summary
+## 4. Data Population Summary
 
 The database was populated with sample data exceeding the minimum assignment requirements:
 
@@ -286,7 +196,7 @@ FROM dual;
 
 ---
 
-## 6. Analytical Queries, Screenshots & Interpretations
+## 5. Analytical Queries, Screenshots & Interpretations
 
 ---
 
@@ -711,7 +621,7 @@ Repeat customers return between 9 and 16 days after their prior order. If an act
 
 ---
 
-## 7. Challenges Encountered and Resolutions
+## 6. Challenges Encountered and Resolutions
 
 1. **ORA-65096 while creating user:**
    * *Problem:* Running `CREATE USER sunrise_user` while connected to `CDB$ROOT` failed with `ORA-65096` because local users cannot be created in the root container without the `C##` prefix.
@@ -739,7 +649,7 @@ Repeat customers return between 9 and 16 days after their prior order. If an act
 
 ---
 
-## 8. How to Run the Project
+## 7. How to Run the Project
 
 ### Prerequisites
 * Oracle AI Database 26ai Free
@@ -763,7 +673,7 @@ Repeat customers return between 9 and 16 days after their prior order. If an act
    ```sql
    @run_all.sql
    ```
-   *This drops old tables, recreates the schema, inserts all data, sets column formatting, and executes all 8 queries in order.*
+   *This inserts all data, sets column formatting, and executes all 8 queries in order.*
 
 ---
 
@@ -771,7 +681,6 @@ Repeat customers return between 9 and 16 days after their prior order. If an act
 
 You can also run the scripts in order from the `sql/` folder:
 ```sql
-@sql/01_create_tables.sql
 @sql/02_insert_data.sql
 @sql/03_join_queries.sql
 @sql/04_cte_query.sql
@@ -804,17 +713,15 @@ Expected: 6 customers, 10 products, 15 orders, 30 order items.
 
 ---
 
-## 9. File Structure
+## 8. File Structure
 
 ```text
 assignment_1_felicien-20251sen197/
-├── 01_schema.sql           # Table creation DDL (root)
 ├── 02_data.sql             # Insert statements and COMMIT (root)
 ├── 03_queries.sql          # All 8 queries (root)
 ├── run_all.sql             # Master script to run everything
 ├── README.md               # Documentation with screenshots
 ├── sql/                    # Individual query files
-│   ├── 01_create_tables.sql
 │   ├── 02_insert_data.sql
 │   ├── 03_join_queries.sql
 │   ├── 04_cte_query.sql
