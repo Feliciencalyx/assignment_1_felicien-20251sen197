@@ -78,8 +78,13 @@ The database is loaded with realistic supermarket data exceeding assignment mini
 ### Database Environment
 - **DBMS:** Oracle AI Database 26ai Free Release 23.26.3.0.0
 - **Client Tools:** SQL*Plus CLI and Oracle SQL Developer
-- **Pluggable Database (PDB):** `FE_PDB_20251SEN197`
-- **User Schema:** `FELICIEN_PLSQLAUCA_20251SEN197`
+- **Dedicated Pluggable Database (PDB):** `PDB_SUNRISE` (Created specifically for this project)
+- **User Schema:** `SUNRISE_ADMIN`
+- **Default Tablespace:** `USERS`
+- **Connection Service:** `localhost:1521/pdb_sunrise`
+
+> [!NOTE]
+> All existing PDBs (`FREEPDB1` and `FE_PDB_20251SEN197`) were left completely untouched. A brand new pluggable database (`PDB_SUNRISE`) was provisioned from `PDB$SEED` with its own dedicated tablespace and user account to ensure complete isolation.
 
 ### File Structure
 ```text
@@ -99,11 +104,11 @@ assignment_1_felicien-20251sen197/
    ```powershell
    cd "D:\New folder"
    ```
-3. Connect to your Oracle database using SQL*Plus:
+3. Connect to the dedicated `PDB_SUNRISE` database using SQL*Plus:
    ```powershell
-   sqlplus FELICIEN_PLSQLAUCA_20251SEN197/YourPassword@localhost:1521/FE_PDB_20251SEN197
+   sqlplus sunrise_admin/Sunrise2026#@localhost:1521/pdb_sunrise
    ```
-   *(Or connect via `sqlplus / as sysdba` and switch session container to `FE_PDB_20251SEN197`)*
+   *(Or connect via `sqlplus / as sysdba` and switch container: `ALTER SESSION SET CONTAINER = PDB_SUNRISE;`)*
 4. Run the master script:
    ```sql
    @run_all.sql
@@ -111,10 +116,14 @@ assignment_1_felicien-20251sen197/
    This automatically creates the schema, populates all tables, formats the terminal output, and runs all 8 queries in order.
 
 #### Method 2: Using Oracle SQL Developer
-1. Launch Oracle SQL Developer and connect to your database connection.
-2. Open `01_schema.sql` and run as a script (`F5`).
-3. Open `02_data.sql` and run as a script (`F5`).
-4. Open `03_queries.sql` and run as a script (`F5`) to inspect each result grid.
+1. Launch Oracle SQL Developer and add a new Database Connection:
+   - **Connection Name:** `PDB_SUNRISE_Admin`
+   - **Username:** `sunrise_admin`
+   - **Password:** `Sunrise2026#`
+   - **Hostname:** `localhost`
+   - **Port:** `1521`
+   - **Service Name:** `pdb_sunrise`
+2. Connect and open `01_schema.sql`, `02_data.sql`, and `03_queries.sql` (or `run_all.sql`) and run with `F5`.
 
 ---
 
