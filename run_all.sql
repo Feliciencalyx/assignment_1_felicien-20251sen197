@@ -1,6 +1,6 @@
 -- PL/SQL Assignment 1 - Sunrise Supermarket
 -- Master execution script: run_all.sql
--- Database: Oracle Database 23ai Free (FREEPDB1)
+-- Database: Oracle AI Database 26ai (FREEPDB1)
 -- Schema: sunrise_user
 
 SET ECHO OFF

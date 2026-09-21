@@ -5,7 +5,7 @@
 * **Student ID:** `20251SEN197`
 * **Course:** Advanced Database Systems / PL/SQL
 * **Group:** Group B / Group C / Group I / Group D
-* **DBMS Used:** Oracle Database 23ai Free
+* **DBMS Used:** Oracle AI Database 26ai Free
 * **Client Tool:** SQL*Plus & Oracle SQL Developer
 * **Pluggable Database:** `FREEPDB1`
 * **Schema User:** `SUNRISE_USER`
@@ -742,7 +742,7 @@ Repeat customers return between 9 and 16 days after their prior order. If an act
 ## 8. How to Run the Project
 
 ### Prerequisites
-* Oracle Database 23ai Free (or compatible Oracle Database)
+* Oracle AI Database 26ai Free
 * SQL*Plus or Oracle SQL Developer
 * Pluggable database `FREEPDB1` open in read-write mode
 
