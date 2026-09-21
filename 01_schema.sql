@@ -1,0 +1,84 @@
+-- =============================================================================
+-- PL/SQL Assignment One - Sunrise Supermarket
+-- File: 01_schema.sql
+-- Description: Drop existing tables (if any) and create the 4 required tables:
+--              1. customers
+--              2. products
+--              3. orders
+--              4. order_items
+-- =============================================================================
+
+-- Clean up existing tables in reverse dependency order to avoid foreign key errors
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE order_items CASCADE CONSTRAINTS PURGE';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE orders CASCADE CONSTRAINTS PURGE';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE products CASCADE CONSTRAINTS PURGE';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE customers CASCADE CONSTRAINTS PURGE';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+
+-- -----------------------------------------------------------------------------
+-- 1. Customers Table
+-- -----------------------------------------------------------------------------
+CREATE TABLE customers (
+    customer_id   NUMBER PRIMARY KEY,
+    customer_name VARCHAR2(100) NOT NULL,
+    email         VARCHAR2(100) UNIQUE,
+    city          VARCHAR2(50)
+);
+
+-- -----------------------------------------------------------------------------
+-- 2. Products Table
+-- -----------------------------------------------------------------------------
+CREATE TABLE products (
+    product_id   NUMBER PRIMARY KEY,
+    product_name VARCHAR2(100) NOT NULL,
+    category     VARCHAR2(50)  NOT NULL,
+    price        NUMBER(10,2)  NOT NULL CHECK (price >= 0)
+);
+
+-- -----------------------------------------------------------------------------
+-- 3. Orders Table
+-- -----------------------------------------------------------------------------
+CREATE TABLE orders (
+    order_id    NUMBER PRIMARY KEY,
+    customer_id NUMBER REFERENCES customers(customer_id),
+    order_date  DATE NOT NULL
+);
+
+-- -----------------------------------------------------------------------------
+-- 4. Order Items Table
+-- -----------------------------------------------------------------------------
+CREATE TABLE order_items (
+    order_item_id NUMBER PRIMARY KEY,
+    order_id      NUMBER REFERENCES orders(order_id),
+    product_id    NUMBER REFERENCES products(product_id),
+    quantity      NUMBER NOT NULL CHECK (quantity > 0)
+);
+
+-- Verify tables created
+SELECT table_name FROM user_tables WHERE table_name IN ('CUSTOMERS', 'PRODUCTS', 'ORDERS', 'ORDER_ITEMS') ORDER BY table_name;
