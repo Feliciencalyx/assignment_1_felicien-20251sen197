@@ -1,14 +1,9 @@
--- =============================================================================
--- PL/SQL Assignment One - Sunrise Supermarket
--- File: sql/04_cte_query.sql
--- Description: CTE Query - Customer total spend and above average spenders
--- =============================================================================
+-- PL/SQL Assignment 1 - Sunrise Supermarket
+-- sql/04_cte_query.sql: CTE query for above-average customer spending
 
 SET SQLBLANKLINES ON;
 
-PROMPT =========================================================================
-PROMPT CTE QUERY: Customer total spend and customers spending above average
-PROMPT =========================================================================
+PROMPT 4. CTE: Customers above average spending
 WITH customer_totals AS (
     SELECT c.customer_id,
            c.customer_name,

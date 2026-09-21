@@ -1,14 +1,9 @@
--- =============================================================================
--- PL/SQL Assignment One - Sunrise Supermarket
--- File: sql/05_window_queries.sql
--- Description: Window-Function Queries 1, 2, 3, and 4
--- =============================================================================
+-- PL/SQL Assignment 1 - Sunrise Supermarket
+-- sql/05_window_queries.sql: Window function queries
 
 SET SQLBLANKLINES ON;
 
-PROMPT =========================================================================
-PROMPT WINDOW QUERY 1: Rank customers by total amount spent, highest first
-PROMPT =========================================================================
+PROMPT 5. Window 1: Rank customers by total amount spent
 WITH customer_totals AS (
     SELECT c.customer_id,
            c.customer_name,
@@ -26,9 +21,7 @@ SELECT customer_id,
 FROM customer_totals
 ORDER BY spending_rank;
 
-PROMPT =========================================================================
-PROMPT WINDOW QUERY 2: Number each customer's orders
-PROMPT =========================================================================
+PROMPT 6. Window 2: Number each customer's orders
 SELECT o.customer_id,
        c.customer_name,
        o.order_id,
@@ -41,9 +34,7 @@ FROM orders o
 INNER JOIN customers c ON o.customer_id = c.customer_id
 ORDER BY o.customer_id, customer_order_number;
 
-PROMPT =========================================================================
-PROMPT WINDOW QUERY 3: Running total of revenue over time
-PROMPT =========================================================================
+PROMPT 7. Window 3: Running total of revenue over time
 WITH daily_revenue AS (
     SELECT o.order_date,
            SUM(oi.quantity * p.price) AS revenue_for_date
@@ -61,9 +52,7 @@ SELECT TO_CHAR(order_date, 'DD-MON-YYYY') AS order_date,
 FROM daily_revenue
 ORDER BY order_date;
 
-PROMPT =========================================================================
-PROMPT WINDOW QUERY 4: Days between consecutive orders
-PROMPT =========================================================================
+PROMPT 8. Window 4: Days between consecutive orders
 WITH order_history AS (
     SELECT o.customer_id,
            c.customer_name,

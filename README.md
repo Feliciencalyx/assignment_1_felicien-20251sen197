@@ -1,51 +1,54 @@
 # PL/SQL Assignment One — Sunrise Supermarket
 
-## Student & Course Information
-* **Student Name:** Nshimyumukiza Felicien
+## Student Details
+* **Name:** Nshimyumukiza Felicien
 * **Student ID:** `20251SEN197`
 * **Course:** Advanced Database Systems / PL/SQL
-* **Group & Deadline:** Group B, Group C, Group I (due Sep 21, 2026, 11:59 PM) / Group D (due Sep 23, 2026, 11:59 PM)
-* **DBMS Used:** Oracle Database 23ai Free / 26ai Free
-* **Client Tool:** SQL*Plus CLI & Oracle SQL Developer
-* **Pluggable Database (PDB):** `FREEPDB1`
-* **User Schema:** `SUNRISE_USER`
-* **Repository:** `assignment_1_felicien-20251sen197`
+* **Group:** Group B / Group C / Group I / Group D
+* **DBMS Used:** Oracle Database 23ai Free
+* **Client Tool:** SQL*Plus & Oracle SQL Developer
+* **Pluggable Database:** `FREEPDB1`
+* **Schema User:** `SUNRISE_USER`
+* **Repository Name:** `assignment_1_felicien-20251sen197`
 
 ---
 
-## 1. Project Summary & Business Scenario
+## 1. Project Summary
 
-### Project Summary
-This project implements a relational database for **Sunrise Supermarket**, a growing grocery store chain operating in Rwanda across **Kigali, Musanze, Huye, Rubavu, and Muhanga**. The database manages customer records, product catalogs, customer orders, and individual basket line-items. 
+This project implements a relational database for **Sunrise Supermarket**, a grocery store operating in Rwanda (with customers across Kigali, Musanze, Huye, Rubavu, and Muhanga). The database tracks customers, supermarket products, customer orders, and individual order items.
 
-The schema is populated with realistic retail transaction data and analyzed through advanced SQL techniques:
-* **ANSI SQL JOINs** (`INNER JOIN` and `LEFT JOIN`)
-* **Common Table Expressions (CTEs)**
-* **Window Functions** (`RANK`, `ROW_NUMBER`, cumulative `SUM() OVER`, and `LAG`)
+After creating and populating the tables, SQL queries were written and executed using:
+* **INNER JOIN** and **LEFT JOIN**
+* **Common Table Expression (CTE)**
+* **Window Functions** (`RANK`, `ROW_NUMBER`, `SUM() OVER`, and `LAG`)
 
-The analysis addresses key operational metrics: customer lifetime value, department revenue contribution, zero-order prospect identification, cumulative daily cash flow, and repeat-purchase velocity.
-
-### Business Scenario
-Sunrise Supermarket sells essential consumer goods (staple foods, beverages, household cleaning supplies, and personal care products). Store leadership requires data-driven answers to core operational questions:
-1. **Who are our most valuable customers?** Determining above-average spenders allows marketing to launch VIP retention and loyalty rewards.
-2. **What products are purchased together?** Analyzing order items helps optimize inventory stocking and high-margin product placement.
-3. **Are there registered customers who have never bought?** Identifying inactive accounts reveals conversion opportunities.
-4. **How does revenue pace over time?** Tracking cumulative sales reveals momentum toward monthly revenue targets.
-5. **How quickly do shoppers return?** Measuring the days between consecutive purchases detects repurchase habits and churn risks.
+The queries answer key business questions about top-spending customers, popular items, order sequences, daily revenue growth, and days between repeat purchases.
 
 ---
 
-## 2. Database Structure & Relational Schema
+## 2. Business Scenario
 
-### Entity-Relationship Architecture
-The database schema consists of four interconnected tables adhering to 3NF normalization:
+Sunrise Supermarket sells everyday retail goods including food items (Rice, Cooking Oil, Sugar, Bread), beverages (Milk, Juice, Water), household items (Soap, Detergent), and personal care products (Toothpaste).
 
-| Table | Purpose | Primary Key | Foreign Keys / Constraints |
+Store management needs clear reports from the database to answer these questions:
+1. **Who are the highest-spending customers?** So marketing can offer them loyalty rewards.
+2. **What items are being bought in each order?** To monitor stock levels and popular product combinations.
+3. **Are there registered customers who have never bought anything?** So the store can send them a welcome discount.
+4. **How is sales revenue growing over time?** To track running daily sales totals.
+5. **How often do repeat customers return?** To see the average number of days between customer orders.
+
+---
+
+## 3. Database Schema Design
+
+The database has four normalized tables:
+
+| Table Name | Description | Primary Key | Foreign Keys |
 |---|---|---|---|
-| **`customers`** | Customer contact profiles and city locations | `customer_id` | Unique `email`, Not Null `customer_name` |
-| **`products`** | Supermarket inventory catalog and prices (RWF) | `product_id` | `CHECK (price >= 0)` |
-| **`orders`** | Sales order headers and transaction dates | `order_id` | `customer_id` → `customers(customer_id)` |
-| **`order_items`** | Line-item quantities resolving M:N relationship | `order_item_id` | `order_id` → `orders`, `product_id` → `products`, `CHECK (quantity > 0)` |
+| **`customers`** | Stores customer name, email, and city | `customer_id` | None |
+| **`products`** | Stores product catalog, category, and price (RWF) | `product_id` | None |
+| **`orders`** | Stores orders placed by customers and order dates | `order_id` | `customer_id` → `customers` |
+| **`order_items`** | Stores products and quantities in each order | `order_item_id` | `order_id` → `orders`, `product_id` → `products` |
 
 ```mermaid
 erDiagram
@@ -62,7 +65,7 @@ erDiagram
         NUMBER customer_id FK
         DATE order_date
     }
-    PRODUCTS ||--o{ ORDER_ITEMS : "included in"
+    PRODUCTS ||--o{ ORDER_ITEMS : contains
     PRODUCTS {
         NUMBER product_id PK
         VARCHAR2 product_name
@@ -79,27 +82,30 @@ erDiagram
 
 ---
 
-## 3. Environment Setup & Execution Screenshots
+## 4. Setup and Screenshots
 
-All database operations were performed in the pluggable database **`FREEPDB1`** under the dedicated schema **`SUNRISE_USER`**.
+All steps were executed in Oracle Database using SQL*Plus connected to the `FREEPDB1` pluggable database.
 
-### 3.1 Switching Container to `FREEPDB1`
+### 4.1 Connecting to `FREEPDB1`
+First, switch from the root container to the pluggable database `FREEPDB1`:
 ```sql
 SHOW PDBS;
 ALTER SESSION SET CONTAINER = FREEPDB1;
 ```
 ![Switch PDB to FREEPDB1](screenshots/switch%20pdb%20to%20freepdb1.png)
 
+Verify current user and container:
 ```sql
-SELECT USER AS current_user,
-       SYS_CONTEXT('USERENV', 'CON_NAME') AS container_name
+SELECT USER AS current_user, 
+       SYS_CONTEXT('USERENV', 'CON_NAME') AS container_name 
 FROM dual;
 ```
 ![Select Current FREEPDB1 User](screenshots/select%20curent%20freepdb1%20user.png)
 
 ---
 
-### 3.2 User Creation & Privilege Grants
+### 4.2 Creating the User and Granting Permissions
+Create `sunrise_user` with unlimited quota on `USERS`:
 ```sql
 CREATE USER sunrise_user
 IDENTIFIED BY Sunrise123
@@ -109,6 +115,7 @@ QUOTA UNLIMITED ON users;
 ```
 ![Create User](screenshots/creating%20user.png)
 
+Grant required privileges:
 ```sql
 GRANT CREATE SESSION,
       CREATE TABLE,
@@ -117,14 +124,15 @@ GRANT CREATE SESSION,
       CREATE PROCEDURE
 TO sunrise_user;
 ```
-![Grant User Permissions](screenshots/grant%20user%20permissions.png)
+![Grant Permissions](screenshots/grant%20user%20permissions.png)
 
+Verify user exists:
 ```sql
 SELECT username FROM dba_users WHERE username = 'SUNRISE_USER';
 ```
 ![Verify User Existence](screenshots/verify%20user%20existance.png)
 
-Connecting as `sunrise_user`:
+Connect directly as `sunrise_user`:
 ```sql
 CONNECT sunrise_user/Sunrise123@localhost:1521/FREEPDB1
 ```
@@ -132,7 +140,7 @@ CONNECT sunrise_user/Sunrise123@localhost:1521/FREEPDB1
 
 ---
 
-### 3.3 Table Creation (DDL)
+### 4.3 Creating the Tables
 ```sql
 CREATE TABLE customers (
     customer_id   NUMBER PRIMARY KEY,
@@ -173,24 +181,24 @@ CREATE TABLE order_items (
         CHECK (quantity > 0)
 );
 ```
-![Table Created](screenshots/table%20created.png)
+![Table Creation](screenshots/table%20created.png)
 
 ---
 
-## 4. Data Population Summary & Row Audits
+## 5. Data Population Summary
 
-The database is populated with realistic Rwandan supermarket data, exceeding all assignment requirements:
+The database was populated with sample data exceeding the minimum assignment requirements:
 
-| Entity | Required Minimum | Inserted Records | Coverage & Notes |
+| Entity | Required Minimum | Inserted | Notes |
 |---|---|---|---|
-| **Customers** | At least 5 | **6** | 5 active repeat shoppers across Rwanda + 1 zero-order prospect |
-| **Products** | At least 8 | **10** | 4 distinct categories: Food, Beverages, Household, Personal Care |
-| **Orders** | At least 15 | **15** | Spanning 01-AUG-2026 to 05-SEP-2026 |
-| **Order Items** | At least 25 | **30** | Multi-item shopping baskets with prices in RWF |
+| **Customers** | At least 5 | **6** | 5 active customers + 1 customer with 0 orders |
+| **Products** | At least 8 | **10** | 4 categories: Food, Beverages, Household, Personal Care |
+| **Orders** | At least 15 | **15** | Dates between 01-AUG-2026 and 05-SEP-2026 |
+| **Order Items** | At least 25 | **30** | Multiple items per order, prices in RWF |
 
-### Data Insertion Screenshots
+### Data Insertion Details & Screenshots
 
-#### 1. Customers Table (6 rows)
+#### 1. Customers (6 rows)
 ```sql
 INSERT INTO customers VALUES (1, 'Alice Uwase', 'alice.uwase@gmail.com', 'Kigali');
 INSERT INTO customers VALUES (2, 'Eric Mugisha', 'eric.mugisha@gmail.com', 'Musanze');
@@ -199,11 +207,11 @@ INSERT INTO customers VALUES (4, 'Patrick Niyonzima', 'patrick.niyonzima@gmail.c
 INSERT INTO customers VALUES (5, 'Diane Ingabire', 'diane.ingabire@gmail.com', 'Kigali');
 INSERT INTO customers VALUES (6, 'Samuel Habimana', 'samuel.habimana@gmail.com', 'Muhanga');
 ```
-![Customer Insertion](screenshots/user%20insert.png)
+![Insert Customers](screenshots/user%20insert.png)
 
 ---
 
-#### 2. Products Table (10 rows across 4 categories)
+#### 2. Products (10 rows across 4 categories)
 ```sql
 INSERT INTO products VALUES (101, 'Rice 5kg', 'Food', 8500.00);
 INSERT INTO products VALUES (102, 'Cooking Oil 1L', 'Food', 3500.00);
@@ -216,11 +224,14 @@ INSERT INTO products VALUES (108, 'Laundry Soap', 'Household', 2200.00);
 INSERT INTO products VALUES (109, 'Dishwashing Liquid', 'Household', 2800.00);
 INSERT INTO products VALUES (110, 'Toothpaste', 'Personal Care', 2500.00);
 ```
-![Product Insertion](screenshots/product%20insertion.png)
+![Insert Products](screenshots/product%20insertion.png)
+
+Count verification:
+![Count for Products](screenshots/count%20for%20products.png)
 
 ---
 
-#### 3. Orders Table (15 rows)
+#### 3. Orders (15 rows)
 ```sql
 INSERT ALL
   INTO orders VALUES (1001, 1, DATE '2026-08-01')
@@ -240,17 +251,14 @@ INSERT ALL
   INTO orders VALUES (1015, 5, DATE '2026-09-05')
 SELECT 1 FROM dual;
 ```
-![Orders Inserted](screenshots/insert%20into%2015%20rows.png)
+![Insert Orders](screenshots/insert%20into%2015%20rows.png)
 
-Verifying order record count:
-```sql
-SELECT COUNT(*) FROM orders;
-```
-![Order Count](screenshots/order%20count.png)
+Count verification:
+![Count for Orders](screenshots/order%20count.png)
 
 ---
 
-#### 4. Order Items Table (30 rows)
+#### 4. Order Items (30 rows)
 ```sql
 INSERT INTO order_items VALUES (1, 1001, 101, 2);
 INSERT INTO order_items VALUES (2, 1001, 105, 3);
@@ -258,17 +266,14 @@ INSERT INTO order_items VALUES (2, 1001, 105, 3);
 INSERT INTO order_items VALUES (30, 1015, 110, 3);
 COMMIT;
 ```
-![Order Items Insert Statements](screenshots/orders%20inserted.png)
+![Insert Order Items](screenshots/orders%20inserted.png)
 
-Verifying item record count:
-```sql
-SELECT COUNT(*) AS item_count FROM order_items;
-```
-![Order Items Inserted Count](screenshots/order%20items%20inserted.png)
+Count verification:
+![Order Items Count](screenshots/order%20items%20inserted.png)
 
 ---
 
-#### 5. Unified Database Audit
+#### 5. Full Database Verification
 ```sql
 SELECT 
   (SELECT COUNT(*) FROM customers) AS customers,
@@ -277,18 +282,15 @@ SELECT
   (SELECT COUNT(*) FROM order_items) AS order_items
 FROM dual;
 ```
-![Full Database Count Audit](screenshots/full%20database%20count.png)
+![Full Database Count](screenshots/full%20database%20count.png)
 
 ---
 
-## 5. Analytical Queries, Explanations, Screenshots & Business Interpretations
+## 6. Analytical Queries, Screenshots & Interpretations
 
 ---
 
-### JOIN Query 1: Order Fulfillment Registry
-#### Objective
-List every order with the customer's name, city, and order date (`INNER JOIN`: `orders` + `customers`).
-
+### JOIN Query 1: Every order with customer name, city, and date
 #### SQL Code
 ```sql
 SELECT o.order_id,
@@ -301,12 +303,10 @@ INNER JOIN customers c
 ORDER BY o.order_date, o.order_id;
 ```
 
-#### Technical Explanation
-* An `INNER JOIN` matches rows where `orders.customer_id = customers.customer_id`.
-* Customers who have never placed an order (Samuel Habimana) are excluded because they have no corresponding order record.
-* `TO_CHAR(o.order_date, 'DD-MON-YYYY')` ensures consistent date formatting.
+#### Explanation
+An `INNER JOIN` matches each order in `orders` to its customer in `customers` using `customer_id`. Only customers who have placed orders appear in this list.
 
-#### Execution Screenshot & Results
+#### Screenshot & Output
 ![Order Joined with Customers](screenshots/Order%20joined%20with%20customers.png)
 
 ```text
@@ -332,14 +332,11 @@ ORDER BY o.order_date, o.order_id;
 ```
 
 #### Business Interpretation
-This query serves as the **Store Dispatch Log**. Logistics teams use this list to schedule deliveries across Kigali, Musanze, Huye, and Rubavu. The continuous sequence confirms healthy demand pacing throughout August and early September 2026.
+This query acts as the order delivery log. It helps store managers and delivery staff see where each order needs to go (Kigali, Musanze, Huye, Rubavu) and shows steady ordering from early August to September.
 
 ---
 
-### JOIN Query 2: Basket Line-Item Breakdown
-#### Objective
-List every order item with product name, category, price, and quantity (`JOIN`: `order_items` + `products`).
-
+### JOIN Query 2: Every order item with product details and quantity
 #### SQL Code
 ```sql
 SELECT oi.order_item_id,
@@ -355,11 +352,10 @@ INNER JOIN products p
 ORDER BY oi.order_id, oi.order_item_id;
 ```
 
-#### Technical Explanation
-* An `INNER JOIN` bridges line items in `order_items` with product attributes in `products` via `product_id`.
-* The computed expression `(p.price * oi.quantity)` derives the monetary subtotal in Rwandan Francs (`item_total`).
+#### Explanation
+This query joins `order_items` and `products` using `product_id` to display the product name, category, unit price, and quantity for every line item, calculating `item_total = price * quantity`.
 
-#### Execution Screenshot & Results
+#### Screenshot & Output
 ![Order Items Joined with Products](screenshots/Order%20items%20joined%20with%20products..png)
 
 ```text
@@ -400,14 +396,11 @@ ORDER_ITEM_ID   ORDER_ID PRODUCT_NAME            CATEGORY          PRICE  QUANTI
 ```
 
 #### Business Interpretation
-This query provides the store's **Itemized Sales Audit**. *Rice 5kg* (8,500 RWF) generates the largest single transaction values (up to 25,500 RWF in Order 1011), while daily essentials like *Milk 1L* and *Bread* provide stable, high-frequency basket volume.
+This shows the contents of every shopping basket. High-value staples like Rice 5kg bring in substantial revenue per sale (up to RWF 25,500), while frequent items like Milk and Bread keep daily sales steady.
 
 ---
 
-### JOIN Query 3: Complete Customer Audit & Inactive Prospect Identification
-#### Objective
-List all customers and their orders where they exist, including customers with no orders (`LEFT JOIN`: `customers` + `orders`).
-
+### JOIN Query 3: All customers and their orders (including customers with no orders)
 #### SQL Code
 ```sql
 SELECT c.customer_id,
@@ -421,11 +414,10 @@ LEFT JOIN orders o
 ORDER BY c.customer_id, o.order_date;
 ```
 
-#### Technical Explanation
-* A `LEFT OUTER JOIN` retains all customer records, even if no matching orders exist in `orders`.
-* For customer `6` (*Samuel Habimana*), `order_id` and `order_date` return `NULL`.
+#### Explanation
+A `LEFT JOIN` keeps all records from `customers`, even when there is no matching order in `orders`. For customer 6 (Samuel Habimana), the `order_id` and `order_date` columns appear as `NULL`.
 
-#### Execution Screenshot & Results
+#### Screenshot & Output
 ![All Customers and Their Orders](screenshots/All%20customers%20and%20their%20orders.png)
 
 ```text
@@ -451,7 +443,7 @@ CUSTOMER_ID CUSTOMER_NAME        CITY       ORDER_ID ORDER_DATE
 16 rows selected.
 ```
 
-#### Edge-Case Verification Query
+#### Verification of Customer Without Orders
 ```sql
 SELECT c.customer_id,
        c.customer_name,
@@ -461,83 +453,14 @@ LEFT JOIN orders o
   ON c.customer_id = o.customer_id
 WHERE o.order_id IS NULL;
 ```
-![Verify Customer Without Orders Appears](screenshots/Verify%20that%20the%20customer%20without%20orders%20appears.png)
+![Customer Without Orders](screenshots/Verify%20that%20the%20customer%20without%20orders%20appears.png)
 
 #### Business Interpretation
-This query serves as a **Customer Conversion Audit**. While customers 1 through 5 are regular purchasers, **Samuel Habimana** in Muhanga has registered but placed zero orders. Marketing can target Samuel with an introductory first-order promotion to activate his account.
+This query reveals that Samuel Habimana registered in Muhanga but has never placed an order. Management can send him a first-time shopper voucher to encourage him to make his first purchase.
 
 ---
 
-### CTE Query 1: Above-Average Customer Spending Benchmark
-#### Objective
-Calculate each customer's total spend (`quantity` × `price`) and return customers above average spend. Use a CTE to compute customer totals first.
-
-#### SQL Code
-```sql
-WITH customer_totals AS (
-    SELECT c.customer_id,
-           c.customer_name,
-           NVL(SUM(oi.quantity * p.price), 0) AS total_spent
-    FROM customers c
-    LEFT JOIN orders o
-        ON c.customer_id = o.customer_id
-    LEFT JOIN order_items oi
-        ON o.order_id = oi.order_id
-    LEFT JOIN products p
-        ON oi.product_id = p.product_id
-    GROUP BY c.customer_id, c.customer_name
-)
-SELECT customer_id,
-       customer_name,
-       total_spent,
-       ROUND((SELECT AVG(total_spent) FROM customer_totals), 2) AS average_spend
-FROM customer_totals
-WHERE total_spent > (SELECT AVG(total_spent) FROM customer_totals)
-ORDER BY total_spent DESC;
-```
-
-#### Technical Explanation
-* The CTE `customer_totals` calculates each customer's total expenditure using `LEFT JOIN` and `NVL()` so zero-order customers are included with 0 RWF.
-* Across all 6 customers, total store revenue is **231,600 RWF**, producing a store benchmark average of:
-  $$\text{Average Spend} = \frac{68,000 + 49,600 + 44,800 + 35,100 + 34,100 + 0}{6} = \frac{231,600}{6} = \mathbf{38,600\text{ RWF}}$$
-* The outer query filters `WHERE total_spent > (SELECT AVG(total_spent) FROM customer_totals)` to extract the top-performing shoppers.
-
-#### Execution Screenshot & Results
-![Every Customer Total Spend](screenshots/every%20customers%20total.png)
-
-```text
-CUSTOMER_ID CUSTOMER_NAME        TOTAL_SPENT AVERAGE_SPEND
------------ -------------------- ----------- -------------
-          1 Alice Uwase                68000         38600
-          5 Diane Ingabire             49600         38600
-          2 Eric Mugisha               44800         38600
-
-3 rows selected.
-```
-
-#### Complete Customer Spending Table (From SQL*Plus Execution)
-```text
-CUSTOMER_ID CUSTOMER_NAME        TOTAL_SPENT
------------ -------------------- -----------
-          1 Alice Uwase                68000
-          5 Diane Ingabire             49600
-          2 Eric Mugisha               44800
-          4 Patrick Niyonzima          35100
-          3 Grace Mukamana             34100
-          6 Samuel Habimana                0
-
-6 rows selected.
-```
-
-#### Business Interpretation
-**Alice Uwase** (68,000 RWF), **Diane Ingabire** (49,600 RWF), and **Eric Mugisha** (44,800 RWF) represent the store's high-value core. These three shoppers generate **162,400 RWF (70.1%)** of the supermarket's total revenue, qualifying them for the Sunrise VIP Loyalty Rewards Program.
-
----
-
-### Window Query 1: Customer Spending Leaderboard (`RANK` & `DENSE_RANK`)
-#### Objective
-Rank customers by total amount spent, highest first.
-
+### CTE Query: Customers spending above average
 #### SQL Code
 ```sql
 WITH customer_totals AS (
@@ -553,262 +476,300 @@ WITH customer_totals AS (
 SELECT customer_id,
        customer_name,
        total_spent,
-       RANK() OVER (ORDER BY total_spent DESC) AS spending_rank,
-       DENSE_RANK() OVER (ORDER BY total_spent DESC) AS dense_spending_rank
+       ROUND((SELECT AVG(total_spent) FROM customer_totals), 2) AS average_spend
 FROM customer_totals
-ORDER BY spending_rank, customer_id;
+WHERE total_spent > (SELECT AVG(total_spent) FROM customer_totals)
+ORDER BY total_spent DESC;
 ```
 
-#### Technical Explanation
-* `RANK() OVER (ORDER BY total_spent DESC)` assigns spending positions from highest to lowest. If ties occur, `RANK()` skips subsequent ranks, whereas `DENSE_RANK()` maintains contiguous integer ordering.
+#### Explanation
+The CTE `customer_totals` calculates each customer's total spending (`quantity * price`). `LEFT JOIN` and `NVL()` ensure Samuel Habimana is included with 0 RWF. The outer query finds the store average spend (RWF 38,600) and returns only the customers whose total spending is above this average.
 
-#### Execution Results
+#### Screenshot & Output
+![Every Customer Total](screenshots/every%20customers%20total.png)
+
 ```text
-Cust ID Customer Name        Total Spent (RWF)  Rank Dense Rank
-------- -------------------- ----------------- ----- ----------
-      1 Alice Uwase                      68000     1          1
-      5 Diane Ingabire                   49600     2          2
-      2 Eric Mugisha                     44800     3          3
-      4 Patrick Niyonzima                35100     4          4
-      3 Grace Mukamana                   34100     5          5
-      6 Samuel Habimana                      0     6          6
+CUSTOMER_ID CUSTOMER_NAME        TOTAL_SPENT AVERAGE_SPEND
+----------- -------------------- ----------- -------------
+          1 Alice Uwase                68000         38600
+          5 Diane Ingabire             49600         38600
+          2 Eric Mugisha               44800         38600
+
+3 rows selected.
+```
+
+Full customer spending summary from SQL*Plus:
+```text
+CUSTOMER_ID CUSTOMER_NAME        TOTAL_SPENT
+----------- -------------------- -----------
+          1 Alice Uwase                68000
+          5 Diane Ingabire             49600
+          2 Eric Mugisha               44800
+          4 Patrick Niyonzima          35100
+          3 Grace Mukamana             34100
+          6 Samuel Habimana                0
+Total: 231,600 RWF / 6 customers = 38,600 RWF average.
+```
+
+#### Business Interpretation
+Alice Uwase, Diane Ingabire, and Eric Mugisha are top spenders who generate over 70% of total supermarket sales (RWF 162,400 out of RWF 231,600). They should receive VIP loyalty benefits and special discounts to maintain their repeat business.
+
+---
+
+### Window Query 1: Rank customers by total amount spent
+#### SQL Code
+```sql
+WITH customer_totals AS (
+    SELECT c.customer_id,
+           c.customer_name,
+           NVL(SUM(oi.quantity * p.price), 0) AS total_spent
+    FROM customers c
+    LEFT JOIN orders o ON c.customer_id = o.customer_id
+    LEFT JOIN order_items oi ON o.order_id = oi.order_id
+    LEFT JOIN products p ON oi.product_id = p.product_id
+    GROUP BY c.customer_id, c.customer_name
+)
+SELECT customer_id,
+       customer_name,
+       total_spent,
+       RANK() OVER (ORDER BY total_spent DESC) AS spending_rank
+FROM customer_totals
+ORDER BY spending_rank;
+```
+
+#### Explanation
+`RANK() OVER (ORDER BY total_spent DESC)` sorts customers by total amount spent in descending order and assigns each a position from 1 to 6.
+
+#### Output
+```text
+Cust ID Customer Name        Total Spent (RWF)  Rank
+------- -------------------- ----------------- -----
+      1 Alice Uwase                      68000     1
+      5 Diane Ingabire                   49600     2
+      2 Eric Mugisha                     44800     3
+      4 Patrick Niyonzima                35100     4
+      3 Grace Mukamana                   34100     5
+      6 Samuel Habimana                      0     6
 
 6 rows selected.
 ```
 
 #### Business Interpretation
-This leaderboard clearly highlights customer contribution tiers. Alice Uwase holds Rank #1. Management can use these ranks to allocate personalized promotional discounts and loyalty perks proportionally.
+This ranks each customer clearly by value. Alice Uwase is #1, followed by Diane and Eric.
 
 ---
 
-### Window Query 2: Customer Order Chronology (`ROW_NUMBER`)
-#### Objective
-Number each customer's orders in the order placed.
-
+### Window Query 2: Number each customer's orders
 #### SQL Code
 ```sql
-SELECT o.order_id,
-       o.customer_id,
+SELECT o.customer_id,
        c.customer_name,
+       o.order_id,
        TO_CHAR(o.order_date, 'DD-MON-YYYY') AS order_date,
        ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id 
+           PARTITION BY o.customer_id
            ORDER BY o.order_date, o.order_id
-       ) AS customer_order_seq
+       ) AS customer_order_number
 FROM orders o
 INNER JOIN customers c
   ON o.customer_id = c.customer_id
-ORDER BY o.customer_id, customer_order_seq;
+ORDER BY o.customer_id, customer_order_number;
 ```
 
-#### Technical Explanation
-* `PARTITION BY o.customer_id` resets order numbering for each customer.
-* `ORDER BY o.order_date, o.order_id` sequences orders chronologically starting at 1.
+#### Explanation
+`ROW_NUMBER()` numbers orders chronologically. `PARTITION BY o.customer_id` resets the counter back to 1 for each customer.
 
-#### Execution Results
+#### Output
 ```text
-Order ID Cust ID Customer Name        Order Date     Order #
--------- ------- -------------------- -------------- -------
-    1001       1 Alice Uwase          01-AUG-2026          1
-    1006       1 Alice Uwase          10-AUG-2026          2
-    1011       1 Alice Uwase          23-AUG-2026          3
-    1002       2 Eric Mugisha         02-AUG-2026          1
-    1007       2 Eric Mugisha         12-AUG-2026          2
-    1012       2 Eric Mugisha         25-AUG-2026          3
-    1003       3 Grace Mukamana       04-AUG-2026          1
-    1008       3 Grace Mukamana       15-AUG-2026          2
-    1013       3 Grace Mukamana       28-AUG-2026          3
-    1004       4 Patrick Niyonzima    05-AUG-2026          1
-    1009       4 Patrick Niyonzima    17-AUG-2026          2
-    1014       4 Patrick Niyonzima    02-SEP-2026          3
-    1005       5 Diane Ingabire       07-AUG-2026          1
-    1010       5 Diane Ingabire       20-AUG-2026          2
-    1015       5 Diane Ingabire       05-SEP-2026          3
+Cust ID Customer Name        Order ID Order Date     Order #
+------- -------------------- -------- -------------- -------
+      1 Alice Uwase              1001 01-AUG-2026          1
+      1 Alice Uwase              1006 10-AUG-2026          2
+      1 Alice Uwase              1011 23-AUG-2026          3
+      2 Eric Mugisha             1002 02-AUG-2026          1
+      2 Eric Mugisha             1007 12-AUG-2026          2
+      2 Eric Mugisha             1012 25-AUG-2026          3
+      3 Grace Mukamana           1003 04-AUG-2026          1
+      3 Grace Mukamana           1008 15-AUG-2026          2
+      3 Grace Mukamana           1013 28-AUG-2026          3
+      4 Patrick Niyonzima        1004 05-AUG-2026          1
+      4 Patrick Niyonzima        1009 17-AUG-2026          2
+      4 Patrick Niyonzima        1014 02-SEP-2026          3
+      5 Diane Ingabire           1005 07-AUG-2026          1
+      5 Diane Ingabire           1010 20-AUG-2026          2
+      5 Diane Ingabire           1015 05-SEP-2026          3
 
 15 rows selected.
 ```
 
 #### Business Interpretation
-Every active customer placed exactly 3 orders across August and September. Filtering for `customer_order_seq = 1` isolates customer acquisition transactions, while `customer_order_seq >= 2` tracks retention and repeat purchasing habits.
+This allows the supermarket to identify whether an order is a customer's first purchase (`Order # = 1`) or a repeat order (`Order # >= 2`), helping evaluate customer retention.
 
 ---
 
-### Window Query 3: Running Total of Revenue Over Time (`SUM() OVER`)
-#### Objective
-Show a running total of revenue over time, ordered by order date.
-
+### Window Query 3: Running total of revenue over time
 #### SQL Code
 ```sql
-WITH order_revenue AS (
-    SELECT o.order_id,
-           o.order_date,
-           c.customer_name,
-           SUM(oi.quantity * p.price) AS order_total
+WITH daily_revenue AS (
+    SELECT o.order_date,
+           SUM(oi.quantity * p.price) AS revenue_for_date
     FROM orders o
-    INNER JOIN customers c ON o.customer_id = c.customer_id
     INNER JOIN order_items oi ON o.order_id = oi.order_id
     INNER JOIN products p ON oi.product_id = p.product_id
-    GROUP BY o.order_id, o.order_date, c.customer_name
+    GROUP BY o.order_date
 )
-SELECT order_id,
-       TO_CHAR(order_date, 'DD-MON-YYYY') AS order_date,
-       customer_name,
-       order_total,
-       SUM(order_total) OVER (
-           ORDER BY order_date, order_id
+SELECT TO_CHAR(order_date, 'DD-MON-YYYY') AS order_date,
+       revenue_for_date,
+       SUM(revenue_for_date) OVER (
+           ORDER BY order_date
            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS running_total_revenue
-FROM order_revenue
-ORDER BY order_date, order_id;
+       ) AS running_revenue
+FROM daily_revenue
+ORDER BY order_date;
 ```
 
-#### Technical Explanation
-* The CTE calculates each order's monetary subtotal by joining orders with items and products.
-* The window function `SUM(order_total) OVER (ORDER BY order_date, order_id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)` calculates an accumulative revenue pacing progression.
+#### Explanation
+The CTE sums the sales revenue for each date. The windowed `SUM() OVER (...)` adds up each day's revenue cumulatively from the first date to the current date.
 
-#### Execution Results
+#### Output
 ```text
-Order ID Order Date     Customer Name        Order Total (RWF) Running Total (RWF)
--------- -------------- -------------------- ----------------- -------------------
-    1001 01-AUG-2026    Alice Uwase                      21500               21500
-    1002 02-AUG-2026    Eric Mugisha                      9200               30700
-    1003 04-AUG-2026    Grace Mukamana                   13200               43900
-    1004 05-AUG-2026    Patrick Niyonzima                 9200               53100
-    1005 07-AUG-2026    Diane Ingabire                   13500               66600
-    1006 10-AUG-2026    Alice Uwase                      14000               80600
-    1007 12-AUG-2026    Eric Mugisha                     22400              103000
-    1008 15-AUG-2026    Grace Mukamana                   10400              113400
-    1009 17-AUG-2026    Patrick Niyonzima                11500              124900
-    1010 20-AUG-2026    Diane Ingabire                   11600              136500
-    1011 23-AUG-2026    Alice Uwase                      32500              169000
-    1012 25-AUG-2026    Eric Mugisha                     13200              182200
-    1013 28-AUG-2026    Grace Mukamana                   10500              192700
-    1014 02-SEP-2026    Patrick Niyonzima                14400              207100
-    1015 05-SEP-2026    Diane Ingabire                   24500              231600
+Order Date     Daily Revenue (RWF) Running Total (RWF)
+-------------- ------------------- -------------------
+01-AUG-2026                  21500               21500
+02-AUG-2026                   9200               30700
+04-AUG-2026                  13200               43900
+05-AUG-2026                   9200               53100
+07-AUG-2026                  13500               66600
+10-AUG-2026                  14000               80600
+12-AUG-2026                  22400              103000
+15-AUG-2026                  10400              113400
+17-AUG-2026                  11500              124900
+20-AUG-2026                  11600              136500
+23-AUG-2026                  32500              169000
+25-AUG-2026                  13200              182200
+28-AUG-2026                  10500              192700
+02-SEP-2026                  14400              207100
+05-SEP-2026                  24500              231600
 
 15 rows selected.
 ```
 
 #### Business Interpretation
-This query serves as the **Executive Cash-Flow Curve**. Cumulative revenue crossed **100,000 RWF** on August 12, **200,000 RWF** on September 02, and concluded at **231,600 RWF** on September 05. Management can use this running pacing curve to project monthly revenue performance.
+This running total shows steady revenue growth from RWF 21,500 on August 1 to RWF 231,600 by September 5. Store management can check this report daily to verify sales pace against monthly targets.
 
 ---
 
-### Window Query 4: Repurchase Velocity & Intervals (`LAG`)
-#### Objective
-For each customer with more than one order, show days between the current and previous order.
-
+### Window Query 4: Days between consecutive orders
 #### SQL Code
 ```sql
-WITH repeat_customers AS (
-    SELECT customer_id
-    FROM orders
-    GROUP BY customer_id
-    HAVING COUNT(*) > 1
-),
-ordered_history AS (
-    SELECT o.order_id,
-           o.customer_id,
+WITH order_history AS (
+    SELECT o.customer_id,
            c.customer_name,
+           o.order_id,
            o.order_date,
-           LAG(o.order_date, 1) OVER (
+           LAG(o.order_date) OVER (
                PARTITION BY o.customer_id 
                ORDER BY o.order_date, o.order_id
-           ) AS prev_order_date
+           ) AS previous_order_date
     FROM orders o
     INNER JOIN customers c ON o.customer_id = c.customer_id
-    WHERE o.customer_id IN (SELECT customer_id FROM repeat_customers)
 )
-SELECT order_id,
-       customer_id,
+SELECT customer_id,
        customer_name,
-       TO_CHAR(order_date, 'DD-MON-YYYY') AS order_date,
-       TO_CHAR(prev_order_date, 'DD-MON-YYYY') AS prev_order_date,
-       ROUND(order_date - prev_order_date) AS days_between_orders
-FROM ordered_history
+       order_id,
+       TO_CHAR(previous_order_date, 'DD-MON-YYYY') AS previous_order_date,
+       TO_CHAR(order_date, 'DD-MON-YYYY') AS current_order_date,
+       ROUND(order_date - previous_order_date) AS days_between_orders
+FROM order_history
+WHERE previous_order_date IS NOT NULL
 ORDER BY customer_id, order_date;
 ```
 
-#### Technical Explanation
-* The CTE `repeat_customers` filters out single-order buyers and non-purchasers with `HAVING COUNT(*) > 1`.
-* `LAG(o.order_date, 1) OVER (PARTITION BY o.customer_id ORDER BY o.order_date, o.order_id)` retrieves each customer's previous order date.
-* Native Oracle date subtraction (`order_date - prev_order_date`) calculates elapsed days as a direct number. Initial orders yield `NULL`.
+#### Explanation
+`LAG()` fetches the previous order date for the same customer. Subtracting the two dates (`order_date - previous_order_date`) calculates the number of days between purchases. First orders are excluded since they have no previous date.
 
-#### Execution Results
+#### Output
 ```text
-Order ID Cust ID Customer Name        Order Date     Prev Date      Days Apart
--------- ------- -------------------- -------------- -------------- ----------
-    1001       1 Alice Uwase          01-AUG-2026
-    1006       1 Alice Uwase          10-AUG-2026    01-AUG-2026             9
-    1011       1 Alice Uwase          23-AUG-2026    10-AUG-2026            13
-    1002       2 Eric Mugisha         02-AUG-2026
-    1007       2 Eric Mugisha         12-AUG-2026    02-AUG-2026            10
-    1012       2 Eric Mugisha         25-AUG-2026    12-AUG-2026            13
-    1003       3 Grace Mukamana       04-AUG-2026
-    1008       3 Grace Mukamana       15-AUG-2026    04-AUG-2026            11
-    1013       3 Grace Mukamana       28-AUG-2026    15-AUG-2026            13
-    1004       4 Patrick Niyonzima    05-AUG-2026
-    1009       4 Patrick Niyonzima    17-AUG-2026    05-AUG-2026            12
-    1014       4 Patrick Niyonzima    02-SEP-2026    17-AUG-2026            16
-    1005       5 Diane Ingabire       07-AUG-2026
-    1010       5 Diane Ingabire       20-AUG-2026    07-AUG-2026            13
-    1015       5 Diane Ingabire       05-SEP-2026    20-AUG-2026            16
+Cust ID Customer Name        Order ID Prev Date      Order Date     Days Apart
+------- -------------------- -------- -------------- -------------- ----------
+      1 Alice Uwase              1006 01-AUG-2026    10-AUG-2026             9
+      1 Alice Uwase              1011 10-AUG-2026    23-AUG-2026            13
+      2 Eric Mugisha             1007 02-AUG-2026    12-AUG-2026            10
+      2 Eric Mugisha             1012 12-AUG-2026    25-AUG-2026            13
+      3 Grace Mukamana           1008 04-AUG-2026    15-AUG-2026            11
+      3 Grace Mukamana           1013 15-AUG-2026    28-AUG-2026            13
+      4 Patrick Niyonzima        1009 05-AUG-2026    17-AUG-2026            12
+      4 Patrick Niyonzima        1014 17-AUG-2026    02-SEP-2026            16
+      5 Diane Ingabire           1010 07-AUG-2026    20-AUG-2026            13
+      5 Diane Ingabire           1015 20-AUG-2026    05-SEP-2026            16
 
-15 rows selected.
+10 rows selected.
 ```
 
 #### Business Interpretation
-Repeat visit velocity shows high predictability:
-* Customers repurchase within **9 to 16 days** of their prior purchase (averaging **12.6 days**).
-* Initial repeat purchases occur rapidly (Alice within 9 days, Eric within 10 days, Grace within 11 days).
-* If a customer exceeds **18 days** without a repeat order, an automated SMS reminder or promotional voucher can be sent to prevent churn.
+Repeat customers return between 9 and 16 days after their prior order. If an active shopper goes more than 18 days without an order, an automated reminder message or coupon can be sent to bring them back.
 
 ---
 
-## 6. Technical Challenges & Engineering Resolutions
+## 7. Challenges Encountered and Resolutions
 
-| # | Challenge Encountered | Technical Root Cause | Engineering Resolution |
-|---|---|---|---|
-| 1 | **ORA-65096 User Creation in Root Container** | Creating `sunrise_user` while connected to `CDB$ROOT` failed because Oracle requires the `C##` prefix for common users in the root container. | Switched session container to the pluggable database before running user DDL: `ALTER SESSION SET CONTAINER = FREEPDB1;`. |
-| 2 | **ORA-02291 Foreign Key Violation during Orders Insert** | Attempting to insert orders before inserting customer records violated foreign key constraint `FK_ORDERS_CUSTOMER`. | Followed strict dependency order: inserted customers and products first, followed by orders, and lastly order items. |
-| 3 | **SP2-0734 Unrecognized Command on Blank Lines in INSERT ALL** | In SQL*Plus, blank lines cause statement buffering to terminate when `SQLBLANKLINES` is off, splitting multi-line statements. | Populated `order_items` using individual single-line `INSERT` statements and enabled `SET SQLBLANKLINES ON`. |
-| 4 | **Uncommitted Transaction Rollback in SQL\*Plus** | In Oracle, DDL statements auto-commit, but DML statements (`INSERT`) stay uncommitted in a private transaction buffer until committed. Exiting without commit caused `order_items` to have 0 rows. | Added an explicit `COMMIT;` statement at the conclusion of `02_data.sql` and verified row persistence using aggregate count audits. |
-| 5 | **SQL\*Plus Trailing Hyphen Line Continuation** | In SQL\*Plus, header prompts ending in a hyphen (`-`) are parsed as line-continuation characters, causing following SQL queries to merge into the prompt and throw syntax errors (`SP2-0023`, `ORA-03048`). | Replaced all prompt separator bars with equals characters (`PROMPT =========================`), eliminating trailing hyphens. |
-| 6 | **Handling Customers with Zero Orders in Aggregate Queries** | Using `INNER JOIN` in spending and ranking queries completely eliminates registered customers who haven't placed orders. | Utilized `LEFT JOIN` combined with `NVL(SUM(quantity * price), 0)` so zero-order prospects (Samuel Habimana) are retained with a valid 0 RWF total. |
+1. **ORA-65096 while creating user:**
+   * *Problem:* Running `CREATE USER sunrise_user` while connected to `CDB$ROOT` failed with `ORA-65096` because local users cannot be created in the root container without the `C##` prefix.
+   * *Resolution:* Switched container to the pluggable database first: `ALTER SESSION SET CONTAINER = FREEPDB1;`.
+
+2. **ORA-02291 while inserting orders:**
+   * *Problem:* Inserting orders before customers caused foreign key integrity errors on `FK_ORDERS_CUSTOMER`.
+   * *Resolution:* Followed strict insertion order: customers and products first, then orders, and lastly order items.
+
+3. **SP2-0734 during multi-line commands in SQL*Plus:**
+   * *Problem:* Blank lines in multi-line SQL statements caused SQL*Plus to stop buffering and treat subsequent lines as invalid commands.
+   * *Resolution:* Enabled `SET SQLBLANKLINES ON` and ran insert statements as single-line inserts.
+
+4. **Missing COMMIT in SQL*Plus:**
+   * *Problem:* Exiting SQL*Plus without running `COMMIT;` caused inserted rows in `order_items` to roll back.
+   * *Resolution:* Added an explicit `COMMIT;` command at the end of the insert script and verified row counts with `SELECT COUNT(*)`.
+
+5. **SQL*Plus trailing hyphen line continuation:**
+   * *Problem:* Lines in prompt headers ending with a hyphen (`-`) were treated by SQL*Plus as line continuations, causing syntax errors on subsequent queries.
+   * *Resolution:* Formatted prompt headers with `=` characters instead of hyphens.
+
+6. **Ensuring customers without orders were included:**
+   * *Problem:* Using `INNER JOIN` excluded registered customers who had not yet made a purchase.
+   * *Resolution:* Used `LEFT JOIN` and `NVL()` so zero-order customers (Samuel Habimana) appeared in queries with a 0 spending amount.
 
 ---
 
-## 7. How to Run the Project
+## 8. How to Run the Project
 
 ### Prerequisites
-* Oracle AI Database 23ai Free / 26ai Free (or compatible Oracle Database)
-* SQL*Plus CLI or Oracle SQL Developer
-* Pluggable database `FREEPDB1` opened in read-write mode
+* Oracle Database 23ai Free (or compatible Oracle Database)
+* SQL*Plus or Oracle SQL Developer
+* Pluggable database `FREEPDB1` open in read-write mode
 
 ---
 
-### Method 1: Using the Master Script (Recommended)
+### Method 1: Using the Master Script (SQL*Plus)
 
 1. Open PowerShell or Command Prompt.
-2. Navigate to the project root directory:
+2. Navigate to the folder:
    ```powershell
    cd "D:\New folder"
    ```
-3. Connect to `FREEPDB1` as `sunrise_user`:
+3. Connect to `FREEPDB1`:
    ```powershell
    sqlplus sunrise_user/Sunrise123@localhost:1521/FREEPDB1
    ```
-4. Execute the master script:
+4. Run the master script:
    ```sql
    @run_all.sql
    ```
-   *This script runs schema creation, data insertion, column formatting, and executes all 8 queries in sequence.*
+   *This drops old tables, recreates the schema, inserts all data, sets column formatting, and executes all 8 queries in order.*
 
 ---
 
-### Method 2: Running Modular Scripts
+### Method 2: Running Scripts Individually
 
-You can also run the modular scripts individually inside SQL*Plus:
+You can also run the scripts in order from the `sql/` folder:
 ```sql
 @sql/01_create_tables.sql
 @sql/02_insert_data.sql
@@ -817,7 +778,7 @@ You can also run the modular scripts individually inside SQL*Plus:
 @sql/05_window_queries.sql
 ```
 
-Verify populated row counts:
+Verify row counts:
 ```sql
 SELECT
     (SELECT COUNT(*) FROM customers) AS customers,
@@ -826,40 +787,39 @@ SELECT
     (SELECT COUNT(*) FROM order_items) AS order_items
 FROM dual;
 ```
-Expected counts: **6 customers, 10 products, 15 orders, 30 order items**.
+Expected: 6 customers, 10 products, 15 orders, 30 order items.
 
 ---
 
 ### Method 3: Using Oracle SQL Developer
-
-1. Launch **Oracle SQL Developer**.
-2. Add a new Database Connection:
+1. Open Oracle SQL Developer.
+2. Connect with:
    * **Connection Name:** `FREEPDB1_Sunrise`
    * **Username:** `sunrise_user`
    * **Password:** `Sunrise123`
    * **Hostname:** `localhost`
    * **Port:** `1521`
    * **Service Name:** `freepdb1`
-3. Open `run_all.sql` and press **F5** (Run Script).
+3. Open `run_all.sql` and run as a script (`F5`).
 
 ---
 
-## 8. Repository Structure
+## 9. File Structure
 
 ```text
 assignment_1_felicien-20251sen197/
-├── 01_schema.sql           # DDL schema definition & constraints (root)
-├── 02_data.sql             # 6 customers, 10 products, 15 orders, 30 order items + COMMIT
-├── 03_queries.sql          # All 8 JOIN, CTE, and Window queries (root)
-├── run_all.sql             # Master execution script with column formatting
-├── README.md               # Complete project documentation with embedded screenshots
-├── sql/                    # Modular SQL execution scripts
+├── 01_schema.sql           # Table creation DDL (root)
+├── 02_data.sql             # Insert statements and COMMIT (root)
+├── 03_queries.sql          # All 8 queries (root)
+├── run_all.sql             # Master script to run everything
+├── README.md               # Documentation with screenshots
+├── sql/                    # Individual query files
 │   ├── 01_create_tables.sql
 │   ├── 02_insert_data.sql
 │   ├── 03_join_queries.sql
 │   ├── 04_cte_query.sql
 │   └── 05_window_queries.sql
-└── screenshots/            # Actual execution screenshots from FREEPDB1 SQL*Plus
+└── screenshots/            # SQL*Plus execution screenshots
     ├── switch pdb to freepdb1.png
     ├── select curent freepdb1 user.png
     ├── creating user.png
@@ -884,4 +844,4 @@ assignment_1_felicien-20251sen197/
 ```
 
 ---
-*Assignment completed in accordance with academic integrity guidelines for PL/SQL Assignment One.*
+*PL/SQL Assignment 1 completed by Nshimyumukiza Felicien (20251SEN197).*

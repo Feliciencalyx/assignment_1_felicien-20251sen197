@@ -1,16 +1,7 @@
--- =============================================================================
--- PL/SQL Assignment One - Sunrise Supermarket
--- File: 02_data.sql
--- Description: Populates sample data meeting and exceeding all requirements:
---              - 6 Customers (including multi-order buyers & 1 zero-order customer)
---              - 10 Products across 4 categories (Food, Beverages, Household, Personal Care)
---              - 15 Orders across August - September 2026
---              - 30 Order Items
--- =============================================================================
+-- PL/SQL Assignment 1 - Sunrise Supermarket
+-- 02_data.sql: Insert sample data
 
--- -----------------------------------------------------------------------------
--- 1. Customers (6 rows)
--- -----------------------------------------------------------------------------
+-- 1. Insert Customers (6 customers)
 INSERT INTO customers VALUES (1, 'Alice Uwase', 'alice.uwase@gmail.com', 'Kigali');
 INSERT INTO customers VALUES (2, 'Eric Mugisha', 'eric.mugisha@gmail.com', 'Musanze');
 INSERT INTO customers VALUES (3, 'Grace Mukamana', 'grace.mukamana@gmail.com', 'Huye');
@@ -18,9 +9,7 @@ INSERT INTO customers VALUES (4, 'Patrick Niyonzima', 'patrick.niyonzima@gmail.c
 INSERT INTO customers VALUES (5, 'Diane Ingabire', 'diane.ingabire@gmail.com', 'Kigali');
 INSERT INTO customers VALUES (6, 'Samuel Habimana', 'samuel.habimana@gmail.com', 'Muhanga');
 
--- -----------------------------------------------------------------------------
--- 2. Products (10 rows across 4 categories: Food, Beverages, Household, Personal Care)
--- -----------------------------------------------------------------------------
+-- 2. Insert Products (10 products)
 INSERT INTO products VALUES (101, 'Rice 5kg', 'Food', 8500.00);
 INSERT INTO products VALUES (102, 'Cooking Oil 1L', 'Food', 3500.00);
 INSERT INTO products VALUES (103, 'Sugar 1kg', 'Food', 1800.00);
@@ -32,9 +21,7 @@ INSERT INTO products VALUES (108, 'Laundry Soap', 'Household', 2200.00);
 INSERT INTO products VALUES (109, 'Dishwashing Liquid', 'Household', 2800.00);
 INSERT INTO products VALUES (110, 'Toothpaste', 'Personal Care', 2500.00);
 
--- -----------------------------------------------------------------------------
--- 3. Orders (15 rows)
--- -----------------------------------------------------------------------------
+-- 3. Insert Orders (15 orders)
 INSERT ALL
   INTO orders VALUES (1001, 1, DATE '2026-08-01')
   INTO orders VALUES (1002, 2, DATE '2026-08-02')
@@ -53,9 +40,7 @@ INSERT ALL
   INTO orders VALUES (1015, 5, DATE '2026-09-05')
 SELECT 1 FROM dual;
 
--- -----------------------------------------------------------------------------
--- 4. Order Items (30 rows)
--- -----------------------------------------------------------------------------
+-- 4. Insert Order Items (30 order items)
 INSERT INTO order_items VALUES (1, 1001, 101, 2);
 INSERT INTO order_items VALUES (2, 1001, 105, 3);
 INSERT INTO order_items VALUES (3, 1002, 102, 2);
@@ -87,10 +72,9 @@ INSERT INTO order_items VALUES (28, 1014, 109, 2);
 INSERT INTO order_items VALUES (29, 1015, 101, 2);
 INSERT INTO order_items VALUES (30, 1015, 110, 3);
 
--- Permanent commit of transaction
 COMMIT;
 
--- Row verification
+-- Verify row counts
 SELECT 
     (SELECT COUNT(*) FROM customers) AS customers,
     (SELECT COUNT(*) FROM products) AS products,

@@ -1,50 +1,32 @@
--- =============================================================================
--- PL/SQL Assignment One - Sunrise Supermarket
--- File: 01_schema.sql
--- Description: Drop existing tables (if any) and create the 4 required tables:
---              1. customers
---              2. products
---              3. orders
---              4. order_items
--- Target Database: Oracle Database (FREEPDB1)
--- =============================================================================
+-- PL/SQL Assignment 1 - Sunrise Supermarket
+-- 01_schema.sql: Table definitions
 
--- Clean up existing tables in reverse dependency order
+-- Drop tables if they already exist
 BEGIN
-    EXECUTE IMMEDIATE 'DROP TABLE order_items CASCADE CONSTRAINTS PURGE';
-EXCEPTION
-    WHEN OTHERS THEN
-        IF SQLCODE != -942 THEN RAISE; END IF;
+    EXECUTE IMMEDIATE 'DROP TABLE order_items CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
 END;
 /
 
 BEGIN
-    EXECUTE IMMEDIATE 'DROP TABLE orders CASCADE CONSTRAINTS PURGE';
-EXCEPTION
-    WHEN OTHERS THEN
-        IF SQLCODE != -942 THEN RAISE; END IF;
+    EXECUTE IMMEDIATE 'DROP TABLE orders CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
 END;
 /
 
 BEGIN
-    EXECUTE IMMEDIATE 'DROP TABLE products CASCADE CONSTRAINTS PURGE';
-EXCEPTION
-    WHEN OTHERS THEN
-        IF SQLCODE != -942 THEN RAISE; END IF;
+    EXECUTE IMMEDIATE 'DROP TABLE products CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
 END;
 /
 
 BEGIN
-    EXECUTE IMMEDIATE 'DROP TABLE customers CASCADE CONSTRAINTS PURGE';
-EXCEPTION
-    WHEN OTHERS THEN
-        IF SQLCODE != -942 THEN RAISE; END IF;
+    EXECUTE IMMEDIATE 'DROP TABLE customers CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
 END;
 /
 
--- -----------------------------------------------------------------------------
 -- 1. Customers Table
--- -----------------------------------------------------------------------------
 CREATE TABLE customers (
     customer_id   NUMBER PRIMARY KEY,
     customer_name VARCHAR2(100) NOT NULL,
@@ -52,9 +34,7 @@ CREATE TABLE customers (
     city          VARCHAR2(50)
 );
 
--- -----------------------------------------------------------------------------
 -- 2. Products Table
--- -----------------------------------------------------------------------------
 CREATE TABLE products (
     product_id   NUMBER PRIMARY KEY,
     product_name VARCHAR2(100) NOT NULL,
@@ -63,9 +43,7 @@ CREATE TABLE products (
     CONSTRAINT chk_product_price CHECK (price >= 0)
 );
 
--- -----------------------------------------------------------------------------
 -- 3. Orders Table
--- -----------------------------------------------------------------------------
 CREATE TABLE orders (
     order_id    NUMBER PRIMARY KEY,
     customer_id NUMBER NOT NULL,
@@ -75,9 +53,7 @@ CREATE TABLE orders (
         REFERENCES customers(customer_id)
 );
 
--- -----------------------------------------------------------------------------
 -- 4. Order Items Table
--- -----------------------------------------------------------------------------
 CREATE TABLE order_items (
     order_item_id NUMBER PRIMARY KEY,
     order_id      NUMBER NOT NULL,
@@ -93,7 +69,7 @@ CREATE TABLE order_items (
         CHECK (quantity > 0)
 );
 
--- Verify tables created
+-- Verify created tables
 SELECT table_name FROM user_tables 
 WHERE table_name IN ('CUSTOMERS', 'PRODUCTS', 'ORDERS', 'ORDER_ITEMS') 
 ORDER BY table_name;
